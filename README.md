@@ -25,7 +25,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+
 
 
 
@@ -236,7 +236,7 @@ Project Link: [https://github.com/Stu-Pickles3047/pickles-weather](https://githu
 [issues-shield]: https://img.shields.io/github/issues/Stu-Pickles3047/pickles-weather.svg?style=for-the-badge
 [issues-url]: https://github.com/Stu-Pickles3047/pickles-weather/issues
 [license-shield]: https://img.shields.io/github/license/Stu-Pickles3047/pickles-weather.svg?style=for-the-badge
-[license-url]: https://github.com/Stu-Pickles3047/pickles-weather/LICENSE.txt
+[license-url]: [[https://github.com/Stu-Pickles3047/pickles-weather/LICENSE.txt](https://raw.githubusercontent.com/Stu-Pickles3047/pickles-weather/refs/heads/main/LICENSE.txt?token=GHSAT0AAAAAADAGFV4LBIEIVKYJ5QMNL7DYZ6NKHIQ)]
 [product-screenshot]: images/screenshot.png
 [Lua]: https://img.shields.io/badge/Lua-2C2D72?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Lua-url]: https://lua.org/

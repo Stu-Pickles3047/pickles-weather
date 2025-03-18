@@ -6,10 +6,10 @@ return {
 
     latitude = "-37.816228709426966", -- Latitude of location without S or E etc Current location set to Melbourne, Vic, Australia
     longitude = "144.96422468453642", -- Latitude of location without S or E etc  
-    --Location to save weather.json Should be in /path/to/conky-config/Pickles-Weather/weather.json
-    save_loc = "/home/stu/Pickles-Weather/Pickles-Weather/weather.json",
-    --Location where weather icons are located - Should be in /path/to/conky-config/Pickles-Weather/icons/
-    icon_path = "/home/stu/Pickles-Weather/Pickles-Weather/icons/",
-    --Size you want the weather image to display in conky
+       --Size you want the weather image to display in conky
     icon_size = "20x20",
+     --Location to save weather.json Should be in /path/to/conky-config/Pickles-Weather/weather.json
+     save_loc = "/home/stu/.conky/pickles-Weather/Pickles-Weather/weather.json",
+     --Location where weather icons are located - Should be in /path/to/conky-config/Pickles-Weather/icons/
+     icon_path = "/home/stu/.conky/pickles-Weather/Pickles-Weather/icons/",
 }

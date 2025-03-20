@@ -158,8 +158,23 @@ Edit save_loc should be something like
     save_loc = '/home/username/.conky/pickles-weather.json',
 Edit icon_path as above but path to icons folder
 ```
+Save and close settings.lua
 
 6. Adjust conk.conf as per pickle-weather.examples.conk.conf
+* Open pickles-weather.examples.conky.conf
+```kate
+Edit line
+    lua_load = 'path/to/conky.conf/Pickles-Weather/weather.lua' ,
+to location where you weather.lua is located
+```
+Save and close
+
+7. Run conky
+  ```sh
+conky -d -c /path/to/pickles-weather/pickle-weather.examples.conk.conf
+```
+8. Enjoy.
+* Dont forget to try it out in your own conky, and report any bugs.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

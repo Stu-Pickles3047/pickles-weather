@@ -86,6 +86,15 @@
 
 Pickles Weather | (https://github.com/Stu-Pickles3047/pickles-weather)
 
+Pickles Weather is an LUA script designed to run with conky.
+
+It will give
+- Current Temp
+- Min Temp
+- Max Temp
+- Current Conditions
+- Weather im in conky format
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -115,15 +124,42 @@ Open a terminal and change to your Conky config directory (On Garuda this is fou
 
 ### Installation
 
-1. Clone the repo 
+1. 
+Open a terminal and change to your Conky config directory (On Garuda this is found in /home/username/.conky/)
+* 
+  ```sh
+  cd ~/.conky/
+  ```
+
+2. Clone the repo 
+* 
    ```sh
    git clone https://github.com/Stu-Pickles3047/pickles-weather.git 
    ```
-   2.  Change into directory
+
+3.  Change into directory
+* 
     ```sh
-   cd pickles-weather/
+      cd pickles-weather
    ```
-3.Further Instructions to follow
+
+4. Open settings.lua un your favourite editor
+  * 
+    ```lua
+    kate settings.lua
+    ```
+5. Follow the instructions in settings.lua
+* 
+```lua
+Change Latitude
+Change Longitude
+Icon size, only adjust if you need icon bigger or smaller
+Edit save_loc should be something like
+    save_loc = '/home/username/.conky/pickles-weather.json',
+Edit icon_path as above but path to icons folder
+```
+
+6. Adjust conk.conf as per pickle-weather.examples.conk.conf
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

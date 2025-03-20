@@ -25,7 +25,6 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 
 
 
@@ -106,15 +105,12 @@ Pickles Weather | (https://github.com/Stu-Pickles3047/pickles-weather)
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
 ### Prerequisites
 
 Open a terminal and change to your Conky config directory (On Garuda this is found in /home/username/.conky/)
-* npm
+* 
   ```sh
-  cd .conky/
+  cd ~/.conky/
   ```
 
 ### Installation
@@ -127,19 +123,7 @@ Open a terminal and change to your Conky config directory (On Garuda this is fou
     ```sh
    cd pickles-weather/
    ```
-3. Run Dependency.sh
-   ```sh
-   sh dependency-check.sh
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin Stu-Pickles3047/pickles-weather
-   git remote -v # confirm the changes
-   ```
+3.Further Instructions to follow
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -148,21 +132,19 @@ Open a terminal and change to your Conky config directory (On Garuda this is fou
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
+Conky Instructions
+<br>
+Example:<br>
+<a href="conky.png"><img src="conky.png" style="width:50px"></a>
 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ]Add Further Setup Instructions
+- [ ] Add dependency check
+- [ ] Add setup script
+- [ ] Add better conky example
+  
 
 See the [open issues](https://github.com/Stu-Pickles3047/pickles-weather/issues) for a full list of proposed features (and known issues).
 
@@ -197,7 +179,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the project_license. See `LICENSE.txt` for more information.
+Distributed under the unlicense. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -237,7 +219,7 @@ Project Link: [https://github.com/Stu-Pickles3047/pickles-weather](https://githu
 [issues-url]: https://github.com/Stu-Pickles3047/pickles-weather/issues
 [license-shield]: https://img.shields.io/github/license/Stu-Pickles3047/pickles-weather.svg?style=for-the-badge
 [license-url]: https://github.com/Stu-Pickles3047/pickles-weather/LICENSE.txt
-[product-screenshot]: images/screenshot.png
+[product-screenshot]: conky.png
 [Lua]: https://img.shields.io/badge/Lua-2C2D72?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Lua-url]: https://lua.org/
 

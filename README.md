@@ -124,27 +124,22 @@ Open a terminal and change to your Conky config directory (On Garuda this is fou
 
 ### Installation
 
-1. 
-Open a terminal and change to your Conky config directory (On Garuda this is found in /home/username/.conky/)
-* 
+1. Clone the repo
   ```sh
-  cd ~/.conky/
+  git clone https://github.com/Stu-Pickles3047/pickles-weather.git
   ```
 
-2. Clone the repo 
-* 
+2. Change to Pickles Weather directory
    ```sh
-   git clone https://github.com/Stu-Pickles3047/pickles-weather.git 
+   cd pickles-weather/
    ```
 
-3.  Change into directory
-* 
+3.  Run the setup script
     ```sh
-      cd pickles-weather
+      sh setup.sh
    ```
 
-4.Either run setup.sh and then Continue or 
-Open settings.lua un your favourite editor
+4. Open settings.lua un your favourite editor
   * 
     ```lua
     kate settings.lua
@@ -158,8 +153,9 @@ Icon size, only adjust if you need icon bigger or smaller
 Edit save_loc should be something like 
     save_loc = '/home/username/.conky/pickles-weather.json',
 Edit icon_path as above but path to icons folder
-save_loc and icon_path will have changed and be correct if you ran setup.sh
 ```
+save_loc and icon_path will have changed and be correct if you ran setup.sh
+
 Save and close settings.lua
 
 6. This step only needed if you didn't use setup.sh

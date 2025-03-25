@@ -1,159 +1,287 @@
+
+
 #!/bin/bash
 
-clear
-echo "Setting up " && echo "Pickles Weather"
-# Lua script path (relative to the script's directory)
-lua_script="$(pwd)/weather.lua"
+# ANSI color codes
+LIGHT_BLUE='\e[1;34m'
+RED='\e[1;31m'
+GREEN='\e[1;32m'
+NC='\e[0m' # No Color
 
-# Conky configuration file path (relative to the script's directory)
-conky_config="$(pwd)/pickles-weather.examples.conky.conf"
-
-# Function to check if a command is available and install if missing
-check_command() {
-  if command -v "$1" &> /dev/null; then
-    echo "Found $1"
-    return 0
-  else
-    echo "" && echo ""
-    echo "Installing $1..."
-    if [[ "$(id -u)" -eq 0 ]]; then # Check if root
-      if command -v paru &> /dev/null; then
-        paru -S --noconfirm "$1"
-      elif command -v apt &> /dev/null; then
-        apt-get update && apt-get install -y "$1"
-      else
-        echo "Error: paru or apt not found. Please install $1 manually."
-        return 1
-      fi
-    else
-      if command -v paru &> /dev/null; then
-        sudo paru -S --noconfirm "$1"
-      elif command -v apt &> /dev/null; then
-        sudo apt-get update && sudo apt-get install -y "$1"
-      else
-        echo "Error: paru or apt not found. Please run this script as root or install $1 manually."
-        return 1
-      fi
-    fi
-    if command -v "$1" &> /dev/null; then
-      echo "$1 installed successfully."
-      return 0
-    else
-      echo "Error: Failed to install $1."
-      return 1
-    fi
-  fi
-}
-
-# Function to check if a Lua module is available and install if missing
-check_lua_module() {
-  lua -e "require('$1')" &> /dev/null
-  if [ $? -eq 0 ]; then
-    echo "Found Lua module: $1"
-    return 0
-  else
-    echo "Installing Lua module: $1..."
-    if [[ "$(id -u)" -eq 0 ]]; then # Check if root
-      luarocks install "$1"
-    else
-      sudo luarocks install "$1"
-    fi
-    lua -e "require('$1')" &> /dev/null
-    if [ $? -eq 0 ]; then
-      echo "Lua module $1 installed successfully."
-      return 0
-    else
-      echo "Error: Failed to install Lua module $1."
-      return 1
-    fi
-  fi
-}
-
-# Check for required commands and install if needed
-echo "Checking and installing required commands..."
-check_command lua
-check_command wget
-check_command curl
-check_command luarocks
-
-# Check for required Lua modules and install if needed
-echo "" && echo "Checking and installing required Lua modules..."
-check_lua_module socket.http
-check_lua_module dkjson
-echo ""
-# Check if the settings.lua file exists and update if necessary
-settings_file="$(dirname "$lua_script")/settings.lua"
-if [ -f "$settings_file" ]; then
-  echo "Found settings.lua"
-
-  # Update save_loc
-  sed -i "s|save_loc = \".*\"|save_loc = \"$(pwd)/weather.json\"|" "$settings_file"
-  echo "Updated save_loc in settings.lua"
-
-  # Update icon_path
-  sed -i "s|icon_path = \".*\"|icon_path = \"$(pwd)/icons/\"|" "$settings_file"
-  echo "Updated icon_path in settings.lua"
-
-  # Update conky config lua_load
-  sed -i "s|lua_load = '.*'|lua_load = '$(pwd)/weather.lua'|" "$conky_config"
-  echo "Updated lua_load in conky config"
-
-  # Check if the icon path exists.
-  if [[ -n $(grep -oP 'icon_path\s*=\s*"\K[^"]+' "$settings_file") ]]
-  then
-    ICON_PATH=$(grep -oP 'icon_path\s*=\s*"\K[^"]+' "$settings_file")
-    if [[ -d "$ICON_PATH" ]]
-    then
-      echo "Icon directory found: $ICON_PATH"
-    else
-      echo "Error: Icon directory not found: $ICON_PATH"
-      exit 1
-    fi
-  else
-    echo "Error: icon_path not defined in settings.lua"
-    exit 1
-  fi
-
-  # check if save_loc is defined and if the directory it points to is writeable.
-  if [[ -n $(grep -oP 'save_loc\s*=\s*"\K[^"]+' "$settings_file") ]]
-  then
-    SAVE_LOC=$(grep -oP 'save_loc\s*=\s*"\K[^"]+' "$settings_file")
-    SAVE_LOC_DIR=$(dirname "$SAVE_LOC")
-    if [[ -d "$SAVE_LOC_DIR" ]]
-    then
-      if [[ -w "$SAVE_LOC_DIR" ]]
-      then
-        echo "Save location directory is writeable: $SAVE_LOC_DIR"
-      else
-        echo "Error: Save location directory is not writeable: $SAVE_LOC_DIR"
-        exit 1
-      fi
-    else
-      echo "Error: Save location directory does not exist: $SAVE_LOC_DIR"
-      exit 1
-    fi
-  else
-    echo "Error: save_loc not defined in settings.lua"
-    exit 1
-  fi
-
+# Detect distro and set package manager
+if command -v pacman &> /dev/null; then
+  PKG_MANAGER="pacman -Syu --noconfirm"
+  DISTRO="Arch-based (pacman)"
+elif command -v dnf &> /dev/null; then
+  PKG_MANAGER="dnf install -y"
+  DISTRO="Fedora/CentOS (dnf)"
+elif command -v zypper &> /dev/null; then
+  PKG_MANAGER="zypper install -y"
+  DISTRO="openSUSE (zypper)"
+elif command -v apt-get &> /dev/null; then
+  PKG_MANAGER="apt-get install -y"
+  DISTRO="Debian/Ubuntu (apt-get)"
+elif command -v yum &> /dev/null; then
+  PKG_MANAGER="yum install -y"
+  DISTRO="Older Fedora/CentOS (yum)"
+elif command -v apk &> /dev/null; then
+  PKG_MANAGER="apk add --no-cache"
+  DISTRO="Alpine (apk)"
 else
-  echo "Error: settings.lua not found in $(dirname \"$lua_script\")."
-  exit 1
+  PKG_MANAGER="" # No default detected
+  DISTRO="Unknown"
 fi
 
-echo "" && echo "Dependency check complete."
+# Prompt for package manager if auto-detection fails.
+if [[ -z "$PKG_MANAGER" ]]; then
+  log_and_print "$RED" "No default package manager detected."
+  read -p "Enter package manager (pacman, dnf, zypper, apt-get, yum, apk): " CUSTOM_PKG_MANAGER
 
-# Ask to start Conky
-read -p "Would you like to start conky with pickles weather example conky script? (y/n): " choice
-if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
-  if command -v conky &> /dev/null; then
-    killall conky
-    conky -d -c "$(pwd)/pickles-weather.examples.conky.conf"
-    echo "Conky started with Pickles Weather."
-  else
-    echo "Error: conky not found. Please install conky to use this feature."
+  case "$CUSTOM_PKG_MANAGER" in
+    pacman) PKG_MANAGER="pacman -Syu --noconfirm";;
+    dnf) PKG_MANAGER="dnf install -y";;
+    zypper) PKG_MANAGER="zypper install -y";;
+    apt-get) PKG_MANAGER="apt-get install -y";;
+    yum) PKG_MANAGER="yum install -y";;
+    apk) PKG_MANAGER="apk add --no-cache";;
+    *) log_and_print "$RED" "Invalid package manager. Defaulting to apt-get"; PKG_MANAGER="apt-get install -y";;
+  esac
+  log_and_print "$NC" "Using package manager: $PKG_MANAGER"
+fi
+# Log file
+LOG_FILE="setup.log"
+
+# Function to log and print with color
+log_and_print() {
+  local color="$1"
+  local message="$2"
+  echo -e "${color}${message}${NC}"
+  echo "$message" >> "$LOG_FILE"
+}
+
+# Function to display a progress indicator (flashing dots)
+show_progress() {
+  local count=0
+  while [[ $installing -eq 1 ]]; do
+    printf "."
+    sleep 0.5
+    count=$((count + 1))
+    if [[ $count -gt 3 ]]; then
+      printf "\r   \r" # Clear dots
+      count=0
+    fi
+  done
+  printf "\n" # Newline after progress
+}
+
+# Clear log file
+> "$LOG_FILE"
+
+log_and_print "$LIGHT_BLUE" "Starting Pickles Weather setup..."
+log_and_print "$NC" "----------------------------------------"
+
+# 1. Check required files
+log_and_print "$LIGHT_BLUE" "Checking required files..."
+REQUIRED_FILES=("conky.png" "LICENSE.txt" "pickles-weather.examples.conky.conf" "README.md" "settings.lua" "weather.lua")
+MISSING_FILES=()
+
+for file in "${REQUIRED_FILES[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    MISSING_FILES+=("$file")
   fi
+done
+
+if [[ ${#MISSING_FILES[@]} -gt 0 ]]; then
+  log_and_print "$RED" "Error: Missing required files: ${MISSING_FILES[*]}"
+  exit 1
+else
+  log_and_print "$GREEN" "All required files found."
 fi
 
-exit 0
+log_and_print "$NC" "----------------------------------------"
+
+# 2. Check Conky installation and features
+log_and_print "$LIGHT_BLUE" "Checking Conky installation..."
+
+if ! command -v conky &> /dev/null; then
+  log_and_print "$RED" "Conky is not installed. Installing..."
+  installing=1 # Initialize installing variable
+  show_progress &
+  PROGRESS_PID=$! # Capture PID of background process
+  sudo $PKG_MANAGER conky &> /dev/null
+  installing=0 # Reset installing variable
+  kill $PROGRESS_PID # Kill background process
+  if [[ $? -ne 0 ]]; then
+    log_and_print "$RED" "Error: Failed to install Conky."
+    exit 1
+  else
+    log_and_print "$GREEN" "Conky installed successfully."
+  fi
+else
+  log_and_print "$GREEN" "Conky is already installed."
+fi
+
+CONKY_VERSION=$(conky -v 2>&1)
+
+if ! echo "$CONKY_VERSION" | grep -qi "curl"; then
+  log_and_print "$RED" "Error: Conky does not have curl support."
+  exit 1
+elif ! echo "$CONKY_VERSION" | grep -qi "lua"; then
+  log_and_print "$RED" "Error: Conky does not have lua support."
+  exit 1
+elif ! echo "$CONKY_VERSION" | grep -qi "cairo"; then
+  log_and_print "$RED" "Error: Conky does not have cairo support."
+  exit 1
+else
+  log_and_print "$GREEN" "Conky has curl, lua, and cairo support."
+fi
+
+log_and_print "$NC" "----------------------------------------"
+
+# 3. Check Lua libraries
+log_and_print "$LIGHT_BLUE" "Checking Lua libraries..."
+
+if ! command -v luarocks &> /dev/null; then
+  log_and_print "$RED" "LuaRocks is not installed. Installing..."
+  installing=1 # Initialize installing variable
+  show_progress &
+  PROGRESS_PID=$! # Capture PID of background process
+  sudo $PKG_MANAGER luarocks &> /dev/null
+  installing=0 # Reset installing variable
+  kill $PROGRESS_PID # Kill background process
+  if [[ $? -ne 0 ]]; then
+    log_and_print "$RED" "Error: Failed to install LuaRocks."
+    exit 1
+  else
+    log_and_print "$GREEN" "LuaRocks installed successfully."
+  fi
+else
+  log_and_print "$GREEN" "LuaRocks is already installed."
+fi
+
+#Check for lua socket
+if ! luarocks list | grep -q "socket"; then
+    log_and_print "$RED" "lua socket is not installed. Installing..."
+    installing=1 # Initialize installing variable
+    show_progress &
+    PROGRESS_PID=$! # Capture PID of background process
+    sudo luarocks install socket &> /dev/null
+    installing=0 # Reset installing variable
+    kill $PROGRESS_PID # Kill background process
+    if [[ $? -ne 0 ]]; then
+      log_and_print "$RED" "Error: Failed to install lua socket."
+      exit 1
+    else
+        log_and_print "$GREEN" "lua socket installed via luarocks."
+    fi
+else
+    log_and_print "$GREEN" "lua socket is already installed via luarocks."
+fi
+
+#check for dkjson
+if ! luarocks list | grep -q "dkjson"; then
+  log_and_print "$RED" "dkjson is not installed. Installing..."
+  installing=1 # Initialize installing variable
+  show_progress &
+  PROGRESS_PID=$! # Capture PID of background process
+  sudo luarocks install dkjson &> /dev/null
+  installing=0 # Reset installing variable
+  kill $PROGRESS_PID # Kill background process
+  if [[ $? -ne 0 ]]; then
+    log_and_print "$RED" "Error: Failed to install dkjson."
+    exit 1
+  else
+    log_and_print "$GREEN" "dkjson installed via LuaRocks."
+  fi
+else
+  log_and_print "$GREEN" "dkjson is already installed."
+fi
+
+log_and_print "$NC" "----------------------------------------"
+
+# 4. Modify settings.lua
+log_and_print "$LIGHT_BLUE" "Modifying settings.lua..."
+
+SCRIPT_DIR=$(pwd)
+JSON_PATH="$SCRIPT_DIR/weather.json"
+ICON_PATH="$SCRIPT_DIR/icons/"
+
+sed -i "s|save_loc = \".*\"|save_loc = \"$JSON_PATH\"|" settings.lua
+sed -i "s|icon_path = \".*\"|icon_path = \"$ICON_PATH\"|" settings.lua
+
+log_and_print "$GREEN" "settings.lua modified."
+
+log_and_print "$NC" "----------------------------------------"
+
+# 5. Modify pickles-weather.examples.conky.conf
+log_and_print "$LIGHT_BLUE" "Modifying pickles-weather.examples.conky.conf..."
+
+WEATHER_LUA_PATH="$SCRIPT_DIR/weather.lua"
+
+sed -i "s|lua_load = '.*'|lua_load = '$WEATHER_LUA_PATH'|" pickles-weather.examples.conky.conf
+
+log_and_print "$GREEN" "pickles-weather.examples.conky.conf modified."
+
+log_and_print "$NC" "----------------------------------------"
+# Section to remove .git folder in pickles-weather
+read -p "Do you want to remove the .git folder, and just keep needed files? (y/n): " REMOVE_GIT
+
+if [[ "$REMOVE_GIT" == "y" || "$REMOVE_GIT" == "Y" ]]; then
+  if [[ -d ".git" ]]; then # Corrected path
+    log_and_print "$LIGHT_BLUE" "Removing .git folder..."
+    rm -rf ".git" # Corrected path
+    if [[ $? -eq 0 ]]; then
+      log_and_print "$GREEN" ".git folder removed successfully."
+    else
+      log_and_print "$RED" "Failed to remove .git folder."
+    fi
+  else
+    log_and_print "$NC" ".git folder not found."
+  fi
+else
+  log_and_print "$NC" ".git folder removal skipped."
+fi
+
+log_and_print "$NC" "----------------------------------------"
+# 6. Run Conky
+read -p "Do you want to run Conky with pickles-weather.examples.conky.conf? (y/n): " RUN_CONKY
+
+if [[ "$RUN_CONKY" == "y" || "$RUN_CONKY" == "Y" ]]; then
+  log_and_print "$LIGHT_BLUE" "Running Conky in background..."
+
+  # Kill any existing Conky processes
+  killall conky &> /dev/null
+
+  # Start Conky in background
+  conky -d -c "$SCRIPT_DIR/pickles-weather.examples.conky.conf" &> /dev/null &
+
+  # Wait for Conky to start (5 seconds)
+  sleep 5
+fi
+clear
+log_and_print "$NC" "----------------------------------------"
+log_and_print "$GREEN" "Setup complete. Output saved to $(pwd)/$LOG_FILE"
+echo ""
+echo ""
+##Instructions to add to your own conky
+LOG_FILE="add.to.conky"
+# Clear log file
+> "$LOG_FILE"
+log_and_print "$LIGHT_BLUE" "----------------------------------------"
+log_and_print "$GREEN" "------------Pickles Weather-------------"
+log_and_print "$LIGHT_BLUE" "----------------------------------------"
+log_and_print "$NC" "To add to your own conky.conf"
+log_and_print "$NC" "in the conky.config area add the line"
+log_and_print "$NC" "lua_load = '$WEATHER_LUA_PATH',"
+log_and_print "$NC" "----------------------------------------"
+log_and_print "$NC" "in your text section you can add"
+log_and_print "$NC" "\${lua conky_temperature} -- Adds the current temperature ie 23.1" # Escaped $
+log_and_print "$NC" "\${lua conky_min} -- Adds today's min temperature" # Escaped $
+log_and_print "$NC" "\${lua conky_max} -- Adds today's max temperature" # Escaped $
+log_and_print "$NC" "\${lua conky_description} -- Adds a description of the current weather, ie cloudy, sunny" # Escaped $
+log_and_print "$NC" "\${lua_parse conky_image p=X,Y} -- Adds an icon image from " # Escaped $
+log_and_print "$NC" "/pickles-weather/icons/ to suit the current conditions eg:"
+log_and_print "$NC" "\${lua_parse conky_image p=215,215} sends \${image} tag back to conky with the icon at position 215,215" # Escaped $
+log_and_print "$NC" "----------------------------------------"
+log_and_print "$LIGHT_BLUE" "Thanks For Using Pickles Weather"
+log_and_print "$GREEN" "Conky add to conky complete. Output saved to $(pwd)/$LOG_FILE"

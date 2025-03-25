@@ -160,12 +160,12 @@ else
 fi
 
 #Check for lua socket
-if ! luarocks list | grep -q "socket"; then
+if ! luarocks list | grep -q "luasocket"; then
     log_and_print "$RED" "lua socket is not installed. Installing..."
     installing=1 # Initialize installing variable
     show_progress &
     PROGRESS_PID=$! # Capture PID of background process
-    sudo luarocks install socket &> /dev/null
+    sudo luarocks install luasocket &> /dev/null
     installing=0 # Reset installing variable
     kill $PROGRESS_PID # Kill background process
     if [[ $? -ne 0 ]]; then

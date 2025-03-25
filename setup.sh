@@ -165,7 +165,7 @@ if ! luarocks list | grep -q "luasocket"; then
     installing=1 # Initialize installing variable
     show_progress &
     PROGRESS_PID=$! # Capture PID of background process
-    sudo luarocks install luasocket ##&> /dev/null
+    sudo luarocks install luasocket 
     installing=0 # Reset installing variable
     kill $PROGRESS_PID # Kill background process
     if [[ $? -ne 0 ]]; then
@@ -184,7 +184,7 @@ if ! luarocks list | grep -q "dkjson"; then
   installing=1 # Initialize installing variable
   show_progress &
   PROGRESS_PID=$! # Capture PID of background process
-  sudo luarocks install dkjson &> /dev/null
+  sudo luarocks install dkjson 
   installing=0 # Reset installing variable
   kill $PROGRESS_PID # Kill background process
   if [[ $? -ne 0 ]]; then

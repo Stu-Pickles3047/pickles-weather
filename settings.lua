@@ -9,7 +9,7 @@ return {
        --Size you want the weather image to display in conky
     icon_size = "20x20",
      --Location to save weather.json Should be in /path/to/conky-config/Pickles-Weather/weather.json
-     save_loc = "/home/stu/.conky/pickles-weather/weather.json",
+     save_loc = "/pathto.conky/pickles-weather/weather.json",
      --Location where weather icons are located - Should be in /path/to/conky-config/Pickles-Weather/icons/
-     icon_path = "/home/stu/.conky/pickles-weather/icons/",
+     icon_path = "/pathto.conky/pickles-weather/icons/",
 }
